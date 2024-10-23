@@ -1,0 +1,344 @@
+---
+title: "Ocorrências"
+output: html_document
+date: "2024-10-22"
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+# Documentação de todas as fontes de ocorrência do Katsuwonus Pelamis (Bonito-Listrado ou Skipjack Tuna)
+
+### Bibliotecas gerais usadas
+
+```{r}
+library(tidyverse)
+library(terra)
+library(leaflet)
+library(viridis)
+```
+
+### Variáveis gerais usadas
+
+```{r}
+# limites de latitude e longitude globais (usar os limites de latitude como +90 e -90 irá dar um erro nos rasters)
+lat_min <- -85
+lat_max <- 85
+long_min <- -180
+long_max <- 180
+
+# visualizando limites
+leaflet() %>%
+  addTiles() %>%  # Adiciona o mapa base
+  addRectangles(
+    lng1 = long_min, lat1 = lat_min,  # Canto inferior esquerdo
+    lng2 = long_max, lat2 = lat_max,  # Canto superior direito
+    color = "blue", weight = 2,  # Cor e espessura da borda
+    fill = FALSE, popup = "Área Global"
+  )
+```
+
+```{r}
+# limites de latitude e longitude do oceano atlântico sul
+lat_min_sul <- -42.5
+lat_max_sul <- 10
+long_min_sul <- -57.5
+long_max_sul <- 20
+
+# visualizando limites
+leaflet() %>%
+  addTiles() %>%  # Adiciona o mapa base
+  addRectangles(
+    lng1 = long_min_sul, lat1 = lat_min_sul,  # Canto inferior esquerdo
+    lng2 = long_max_sul, lat2 = lat_max_sul,  # Canto superior direito
+    color = "blue", weight = 2,  # Cor e espessura da borda
+    fill = FALSE, popup = "Área Oceano Atlântico Sul"
+  )
+```
+
+# OBIS
+
+<https://mapper.obis.org/?taxonid=127018#>
+
+Para achar o link, basta entrar no OBIS, ir em Data -\> Mapper,
+selecionar a espécie do Katsuwonus Pelamis (basta digitar no buscador)
+
+Para fazer o download, basta clicar no botão verde na layer selecionada
+da espécie e selecionar "Download", e então escolher apenas
+"(Extended)MeasurementOrFact", digitar o email e prosseguir
+
+O .csv usado é o arquivo "Occurrence.csv" dentro do zip que foi baixado
+
+### Exploração inicial
+
+```{r}
+# Carregando o arquivo
+obis_data <- read.csv("~/RFiles/ocorrencias_katsuwonus/obis/Occurrence.csv", header = TRUE, sep = ",", quote = "\"", stringsAsFactors = FALSE)
+names(obis_data)
+
+# Verificando se têm ocorrências sem latitude ou longitude (neste caso não)
+nrow(obis_data) # 105025
+obis_data_filtered <- obis_data %>%
+  drop_na(decimallongitude, decimallatitude)
+nrow(obis_data_filtered) # 105025
+
+# simplificando os nomes
+obis_data_filtered$lat = obis_data_filtered$decimallatitude
+obis_data_filtered$long = obis_data_filtered$decimallongitude
+```
+
+```{r}
+# Formato dos dados espaciais
+head(obis_data_filtered$lat)
+head(obis_data_filtered$long)
+```
+
+As coordenadas de latitude e longitude são definidas como valores
+contínuos, com 4 casas decimais
+
+### Extensão espacial dos dados
+
+```{r}
+# verificando se todos os dados estão incluídos nos intervalos de lat/lon
+obis_data_filtered_ext <- subset(obis_data_filtered, lat >= lat_min & lat <= lat_max & long >= long_min & long <= long_max)
+nrow(obis_data_filtered_ext) # 105025 - mesmo número de linhas que os dados normais, ou seja, todos os dados estão nesses intervalos
+```
+
+```{r}
+# criando um raster com resolução de 1 grau
+occ_raster_obis <- terra::rast(xmin=long_min, xmax=long_max, ymin=lat_min, ymax=lat_max, nrows=lat_max-lat_min, ncols=long_max-long_min, crs="+proj=longlat +datum=WGS84")
+# agrupando os pontos de ocorrência em células 
+occ_raster_obis <- terra::rasterize(data.matrix(obis_data_filtered[, c('long', 'lat')]), occ_raster_obis, fun=length)
+
+# visualizando o raster de ocorrências
+leaflet() %>% 
+  addTiles() %>%  # Adiciona o mapa base
+  addRasterImage(colors="viridis", occ_raster_obis, opacity = 0.75)
+```
+
+```{r}
+# filtrando apenas ocorrências do atlântico sul
+obis_data_filtered_sul <- subset(obis_data_filtered, lat >= lat_min_sul & lat <= lat_max_sul & long >= long_min_sul & long <= long_max_sul)
+nrow(obis_data_filtered_sul) # 38425
+```
+
+### Extensão temporal dos dados
+
+```{r}
+table(obis_data_filtered$year)
+table(obis_data_filtered_sul$year)
+# fazer mais alguma coisa? ano minimo e maximo, histogramas, ...
+```
+
+# GBIF
+
+<https://www.gbif.org/species/2374191>
+
+Para achar o link, basta entrar no GBIF, ir em Species, procurar por
+Katsuwonus Pelamis, clicar no 1° resultado -\> Katsuwonus pelamis
+(Linnaeus, 1758)
+
+Para fazer o download, é preciso clicar no botão verde "Occurrences", ir
+para "Download", clicar no botão verde "Simple", e então esperar o
+download e finalmente clicar no botão verde "Download"
+
+O .csv usado é o arquivo único encontrado dentro do zip que foi baixado
+
+Notas: Usar o filtro de Occurence Status para “Present” para não usar
+dados de ausência, ou “Everything” para usar ambos de presença e
+ausência. O .csv utilizado neste exemplo possui somente os dados de
+presença do bonito-listrado
+
+O GBIF usa, a princípio, de muitos do mesmos datasets do OBIS
+
+### Exploração inicial
+
+```{r}
+# Carregando o arquivo
+gbif_data <- read.csv("~/RFiles/ocorrencias_katsuwonus/gbif/0030473-241007104925546.csv", sep='\t')
+names(gbif_data)
+
+# Verificando se têm ocorrências sem latitude ou longitude (neste caso, tem)
+nrow(gbif_data) # 29915
+gbif_data_filtered <- gbif_data %>%
+  drop_na(decimalLongitude, decimalLatitude)
+nrow(gbif_data_filtered) # 28279
+
+# simplificando os nomes
+gbif_data_filtered$lat = gbif_data_filtered$decimalLatitude
+gbif_data_filtered$long = gbif_data_filtered$decimalLongitude
+```
+
+```{r}
+# Formato dos dados espaciais
+head(gbif_data_filtered$lat)
+head(gbif_data_filtered$long)
+```
+
+As coordenadas de latitude e longitude são definidas como valores
+contínuos, com 4 casas decimais. Os valores que possuem mais casas são
+apenas arredondamentos, a princípio
+
+### Extensão espacial dos dados
+
+```{r}
+# verificando se todos os dados estão incluídos nos intervalos de lat/lon
+gbif_data_filtered_ext <- subset(gbif_data_filtered, lat >= lat_min & lat <= lat_max & long >= long_min & long <= long_max)
+nrow(gbif_data_filtered_ext) # 28279 - mesmo número de linhas que os dados normais, ou seja, todos os dados estão nesses intervalos
+```
+
+```{r}
+# criando um raster com resolução de 1 grau
+occ_raster_gbif <- terra::rast(xmin=long_min, xmax=long_max, ymin=lat_min, ymax=lat_max, nrows=lat_max-lat_min, ncols=long_max-long_min, crs="+proj=longlat +datum=WGS84")
+# agrupando os pontos de ocorrência em células 
+occ_raster_gbif <- terra::rasterize(data.matrix(gbif_data_filtered[, c('long', 'lat')]), occ_raster_gbif, fun=length)
+
+# visualizando o raster de ocorrências
+leaflet() %>% 
+  addTiles() %>%  # Adiciona o mapa base
+  addRasterImage(colors="viridis", occ_raster_gbif, opacity = 0.75)
+```
+
+```{r}
+# filtrando apenas ocorrências do atlântico sul
+gbif_data_filtered_sul <- subset(gbif_data_filtered, lat >= lat_min_sul & lat <= lat_max_sul & long >= long_min_sul & long <= long_max_sul)
+nrow(gbif_data_filtered_sul) # 1757
+```
+
+### Extensão temporal dos dados
+
+```{r}
+table(gbif_data_filtered$year)
+table(gbif_data_filtered_sul$year)
+# fazer mais alguma coisa? ano minimo e maximo, histogramas, ...
+```
+
+# ICCAT
+
+Datasets - <https://www.iccat.int/en/accesingdb.html>
+
+Manual ICCAT - <https://www.iccat.int/en/iccatmanual.html>
+
+Para achar o link, basta entrar no ICCAT, e ir para Statistics -\>
+Access to ICCAT Statistics Databases
+
+Os datasets que se referem à "Task 1" incluem dados de pesca agrupados
+por grandes regiões, identificados apenas pelo seu código (ver regiões
+abaixo). E os datasets que se referem à "Task 2" incluem dados de pesca
+identificados pelas coordenadas, com resolução corresponde ao
+"GeoStrata", que podem ser 5x5 graus, 1x1 graus ou pontos lat/lon
+
+![<https://www.iccat.int/Data/ICCAT_maps.pdf>](~/RFiles/outros/regioes.png)
+
+Uma explicação mais detalhada existe tanto no manual geral, em "1.1 What
+is ICCAT?" como no glossário, disponível em
+<https://www.iccat.int/Documents/SCRS/Manual/Appendices/Appendix%207%20glossary.zip>
+
+```{r}
+# (acho que task 1 não é preciso)
+# Para os dados referentes à Task 1, foi usado dataset ... . Para baixar,
+# basta ...
+# ### Exploração inicial (Task 1)
+```
+
+Para os dados referentes à Task 2, o dataset usado pode ser encontrado a
+partir da página de datasets em "Sample fishing statistics and fish
+sizes" -\> "Task 2 size" -\> "T2SZ - size frequencies (observed)" -\>
+"SKJ Skipjack tuna" . A sigla "SZ" se refere ao fato que as amostras
+biológicas do peixe foram medidas/pesadas, e não estimadas. Este dataset
+foi escolhido para análise inicial pois fornecerá as medições reais dos
+peixes e também terá a maior resolução espacial entre os datasets
+disponibilizados pelo iccat (outros parecem possuir resolução de 5x5
+graus, apenas)
+
+O .csv usado é o arquivo único encontrado dentro do zip que foi baixado
+
+Explicação das variáveis do dataset disponível em
+<https://www.iccat.int/Data/t2size/ReadmeT2SZ-CS.pdf>
+
+### Exploração inicial (Task 2)
+
+```{r}
+# Carregando o arquivo
+iccat_data <- read.csv("~/RFiles/ocorrencias_katsuwonus/iccat/t2sz_SKJ1950-22/t2sz_SKJ1950-22.csv")
+names(iccat_data)
+
+# Verificando se têm ocorrências sem latitude ou longitude (neste caso, não)
+nrow(iccat_data)
+iccat_data_filtered <- iccat_data %>%
+  drop_na(Lon, Lat)
+nrow(iccat_data_filtered)
+```
+
+```{r}
+# Todos os valores de lat/lon são absolutos
+min(iccat_data_filtered$Lon)
+max(iccat_data_filtered$Lat)
+```
+
+```{r}
+# Se o quadrante é >= 3, a longitude deveria ser negativa
+iccat_data_filtered$long <- ifelse(iccat_data_filtered$QuadID>=3, iccat_data_filtered$Lon*-1, iccat_data_filtered$Lon)
+
+# Se o quadrante é >= 2 e <= 3, a latitude deveria ser negativa
+iccat_data_filtered$lat <- ifelse(iccat_data_filtered$QuadID>=2 & iccat_data_filtered$QuadID<=3, iccat_data_filtered$Lat*-1, iccat_data_filtered$Lat)
+```
+
+Ver página 13 do "ICCAT MAPS"
+![https://www.iccat.int/Data/ICCAT_maps.pdf](~/RFiles/outros/quadrantes.png)
+
+```{r}
+# número de peixes (maioria tem valores bem baixos)
+hist(iccat_data_filtered$Nr)
+```
+
+```{r}
+# vendo quais são as diferentes resoluções
+table(iccat_data_filtered$GeoStrata)
+```
+
+explicação das diferentes resoluções:
+<https://www.iccat.int/Forms/CODES_SquareTypes.xlsx>
+
+Pelo que entendi, a resolução "ICCAT" quer dizer que ele apenas irá
+identificar a área conforme o código da região
+
+```{r}
+# usando apenas os registros com resolução de 1x1 grau
+iccat_data_filtered_1x1 <- iccat_data_filtered[iccat_data_filtered$GeoStrata == "1x1",]
+nrow(iccat_data_filtered_1x1) # 717901
+```
+
+### Extensão espacial dos dados
+
+```{r}
+# verificando se todos os dados estão incluídos nos intervalos de lat/lon
+iccat_data_filtered_1x1_ext <- subset(iccat_data_filtered_1x1, lat >= lat_min & lat <= lat_max & long >= long_min & long <= long_max)
+nrow(iccat_data_filtered_1x1_ext) # 717901 - mesmo número de linhas que os dados normais, ou seja, todos os dados estão nesses intervalos
+```
+
+```{r}
+# criando um raster com resolução de 1 grau
+occ_raster_iccat <- terra::rast(xmin=long_min, xmax=long_max, ymin=lat_min, ymax=lat_max, nrows=lat_max-lat_min, ncols=long_max-long_min, crs="+proj=longlat +datum=WGS84")
+# agrupando os pontos de ocorrência em células 
+occ_raster_iccat <- terra::rasterize(data.matrix(iccat_data_filtered_1x1[, c('long', 'lat')]), occ_raster_iccat, fun=length)
+
+# visualizando o raster de ocorrências
+leaflet() %>% 
+  addTiles() %>%  # Adiciona o mapa base
+  addRasterImage(colors="viridis", occ_raster_iccat, opacity = 0.75)
+```
+
+```{r}
+# filtrando apenas ocorrências do atlântico sul
+iccat_data_filtered_1x1_sul <- subset(iccat_data_filtered_1x1, lat >= lat_min_sul & lat <= lat_max_sul & long >= long_min_sul & long <= long_max_sul)
+nrow(iccat_data_filtered_1x1_sul) # 597570
+```
+
+### Extensão temporal dos dados
+
+```{r}
+table(iccat_data_filtered_1x1$YearC)
+table(iccat_data_filtered_1x1_sul$YearC)
+# fazer mais alguma coisa? ano minimo e maximo, histogramas, ...
+```
