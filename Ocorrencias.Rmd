@@ -1,5 +1,5 @@
 ---
-title: "Ocorrências"
+title: "Documentação de todas as fontes de ocorrência do Katsuwonus Pelamis (Bonito-Listrado ou Skipjack Tuna)"
 output: html_document
 date: "2024-10-22"
 editor_options: 
@@ -7,15 +7,15 @@ editor_options:
     wrap: 72
 ---
 
-# Documentação de todas as fontes de ocorrência do Katsuwonus Pelamis (Bonito-Listrado ou Skipjack Tuna)
-
 ### Bibliotecas gerais usadas
 
 ```{r}
-library(tidyverse)
-library(terra)
-library(leaflet)
-library(viridis)
+if(!require(pacman)) {
+    install.packages("pacman", dependencies = TRUE);
+}
+library(pacman)
+# Instalando pacotes
+p_load(tidyverse, terra, leaflet, viridis)
 ```
 
 ### Variáveis gerais usadas
@@ -37,6 +37,8 @@ leaflet() %>%
     fill = FALSE, popup = "Área Global"
   )
 ```
+
+Os limites escolhidos para a região do oceano atlântico sul provavelmente serão trocados quando definirmos a área de pesquisa
 
 ```{r}
 # limites de latitude e longitude do oceano atlântico sul
@@ -72,9 +74,11 @@ O .csv usado é o arquivo "Occurrence.csv" dentro do zip que foi baixado
 ### Exploração inicial
 
 ```{r}
+# importante usar a opção Knit -> Knit Directory -> Current working directory para mudar o diretório de trabalho
+# para a pasta com os arquivos pelo RStudio
 # Carregando o arquivo
-obis_data <- read.csv("~/RFiles/ocorrencias_katsuwonus/obis/Occurrence.csv", header = TRUE, sep = ",", quote = "\"", stringsAsFactors = FALSE)
-names(obis_data)
+obis_data <- read.csv("ocorrencias_katsuwonus/obis/Occurrence.csv", header = TRUE, sep = ",", quote = "\"", stringsAsFactors = FALSE)
+head(names(obis_data), 50)
 
 # Verificando se têm ocorrências sem latitude ou longitude (neste caso não)
 nrow(obis_data) # 105025
@@ -99,7 +103,7 @@ contínuos, com 4 casas decimais
 ### Extensão espacial dos dados
 
 ```{r}
-# verificando se todos os dados estão incluídos nos intervalos de lat/lon
+# verificando se todos os dados estão incluídos nos intervalos de lat/lon globais
 obis_data_filtered_ext <- subset(obis_data_filtered, lat >= lat_min & lat <= lat_max & long >= long_min & long <= long_max)
 nrow(obis_data_filtered_ext) # 105025 - mesmo número de linhas que os dados normais, ou seja, todos os dados estão nesses intervalos
 ```
@@ -126,8 +130,24 @@ nrow(obis_data_filtered_sul) # 38425
 
 ```{r}
 table(obis_data_filtered$year)
-table(obis_data_filtered_sul$year)
-# fazer mais alguma coisa? ano minimo e maximo, histogramas, ...
+```
+
+```{r}
+sum(is.na(obis_data_filtered$year))
+sum(is.na(obis_data_filtered_sul$year))
+
+obis_data_filtered_time <- obis_data_filtered[obis_data_filtered$year != "" & obis_data_filtered$year != "Unknown",]
+obis_data_filtered_sul_time <- obis_data_filtered_sul[obis_data_filtered_sul$year != "" & obis_data_filtered_sul$year != "Unknown",]
+nrow(obis_data_filtered_time) # 23553 (antes eram 105025)
+nrow(obis_data_filtered_sul_time) # 4848 (antes eram 38425)
+
+paste(min(obis_data_filtered_time$year, na.rm = TRUE), "-", max(obis_data_filtered_time$year, na.rm = TRUE))
+paste(min(obis_data_filtered_sul_time$year, na.rm = TRUE), "-", max(obis_data_filtered_sul_time$year, na.rm = TRUE))
+```
+
+```{r}
+hist(as.numeric(obis_data_filtered_time$year), main="Intervalo temporal dos dados do OBIS globais")
+hist(as.numeric(obis_data_filtered_sul_time$year), main="Intervalo temporal dos dados do OBIS do atlantico sul")
 ```
 
 # GBIF
@@ -155,7 +175,7 @@ O GBIF usa, a princípio, de muitos do mesmos datasets do OBIS
 
 ```{r}
 # Carregando o arquivo
-gbif_data <- read.csv("~/RFiles/ocorrencias_katsuwonus/gbif/0030473-241007104925546.csv", sep='\t')
+gbif_data <- read.csv("ocorrencias_katsuwonus/gbif/0030473-241007104925546.csv", sep='\t')
 names(gbif_data)
 
 # Verificando se têm ocorrências sem latitude ou longitude (neste caso, tem)
@@ -182,7 +202,7 @@ apenas arredondamentos, a princípio
 ### Extensão espacial dos dados
 
 ```{r}
-# verificando se todos os dados estão incluídos nos intervalos de lat/lon
+# verificando se todos os dados estão incluídos nos intervalos de lat/lon globais
 gbif_data_filtered_ext <- subset(gbif_data_filtered, lat >= lat_min & lat <= lat_max & long >= long_min & long <= long_max)
 nrow(gbif_data_filtered_ext) # 28279 - mesmo número de linhas que os dados normais, ou seja, todos os dados estão nesses intervalos
 ```
@@ -209,8 +229,19 @@ nrow(gbif_data_filtered_sul) # 1757
 
 ```{r}
 table(gbif_data_filtered$year)
-table(gbif_data_filtered_sul$year)
-# fazer mais alguma coisa? ano minimo e maximo, histogramas, ...
+```
+
+```{r}
+sum(is.na(gbif_data_filtered$year))
+sum(is.na(gbif_data_filtered_sul$year))
+
+paste(min(gbif_data_filtered$year, na.rm = TRUE), "-", max(gbif_data_filtered$year, na.rm = TRUE))
+paste(min(gbif_data_filtered_sul$year, na.rm = TRUE), "-", max(gbif_data_filtered_sul$year, na.rm = TRUE))
+```
+
+```{r}
+hist(gbif_data_filtered$year, main="Intervalo temporal dos dados do GBIF globais")
+hist(gbif_data_filtered_sul$year, main="Intervalo temporal dos dados do GBIF do atlantico sul")
 ```
 
 # ICCAT
@@ -228,18 +259,16 @@ abaixo). E os datasets que se referem à "Task 2" incluem dados de pesca
 identificados pelas coordenadas, com resolução corresponde ao
 "GeoStrata", que podem ser 5x5 graus, 1x1 graus ou pontos lat/lon
 
-![<https://www.iccat.int/Data/ICCAT_maps.pdf>](~/RFiles/outros/regioes.png)
+```{r}
+# https://www.iccat.int/Data/ICCAT_maps.pdf
+knitr::include_graphics("imagens/regioes.png", error = FALSE)
+```
 
 Uma explicação mais detalhada existe tanto no manual geral, em "1.1 What
 is ICCAT?" como no glossário, disponível em
 <https://www.iccat.int/Documents/SCRS/Manual/Appendices/Appendix%207%20glossary.zip>
 
-```{r}
-# (acho que task 1 não é preciso)
-# Para os dados referentes à Task 1, foi usado dataset ... . Para baixar,
-# basta ...
-# ### Exploração inicial (Task 1)
-```
+A task 1 não será utilizada.
 
 Para os dados referentes à Task 2, o dataset usado pode ser encontrado a
 partir da página de datasets em "Sample fishing statistics and fish
@@ -260,14 +289,14 @@ Explicação das variáveis do dataset disponível em
 
 ```{r}
 # Carregando o arquivo
-iccat_data <- read.csv("~/RFiles/ocorrencias_katsuwonus/iccat/t2sz_SKJ1950-22/t2sz_SKJ1950-22.csv")
+iccat_data <- read.csv("ocorrencias_katsuwonus/iccat/t2sz_SKJ1950-22/t2sz_SKJ1950-22.csv")
 names(iccat_data)
 
 # Verificando se têm ocorrências sem latitude ou longitude (neste caso, não)
-nrow(iccat_data)
+nrow(iccat_data) # 786587
 iccat_data_filtered <- iccat_data %>%
   drop_na(Lon, Lat)
-nrow(iccat_data_filtered)
+nrow(iccat_data_filtered) # 786587
 ```
 
 ```{r}
@@ -285,11 +314,14 @@ iccat_data_filtered$lat <- ifelse(iccat_data_filtered$QuadID>=2 & iccat_data_fil
 ```
 
 Ver página 13 do "ICCAT MAPS"
-![https://www.iccat.int/Data/ICCAT_maps.pdf](~/RFiles/outros/quadrantes.png)
+```{r}
+# https://www.iccat.int/Data/ICCAT_maps.pdf
+knitr::include_graphics("imagens/quadrantes.png", error = FALSE)
+```
 
 ```{r}
 # número de peixes (maioria tem valores bem baixos)
-hist(iccat_data_filtered$Nr)
+hist(iccat_data_filtered$Nr, main="Número de peixes")
 ```
 
 ```{r}
@@ -339,6 +371,18 @@ nrow(iccat_data_filtered_1x1_sul) # 597570
 
 ```{r}
 table(iccat_data_filtered_1x1$YearC)
-table(iccat_data_filtered_1x1_sul$YearC)
-# fazer mais alguma coisa? ano minimo e maximo, histogramas, ...
 ```
+
+```{r}
+sum(is.na(iccat_data_filtered_1x1$YearC))
+sum(is.na(iccat_data_filtered_1x1_sul$YearC))
+
+paste(min(iccat_data_filtered_1x1$YearC, na.rm = TRUE), "-", max(iccat_data_filtered_1x1$YearC, na.rm = TRUE))
+paste(min(iccat_data_filtered_1x1_sul$YearC, na.rm = TRUE), "-", max(iccat_data_filtered_1x1_sul$YearC, na.rm = TRUE))
+```
+
+```{r}
+hist(iccat_data_filtered_1x1$YearC, main="Intervalo temporal dos dados do ICCAT globais")
+hist(iccat_data_filtered_1x1_sul$YearC, main="Intervalo temporal dos dados do ICCAT do atlantico sul")
+```
+
