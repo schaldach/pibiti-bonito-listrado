@@ -6,9 +6,12 @@ editor_options:
   markdown: 
     wrap: 72
 ---
-Importante: 
+IMPORTANTE PARA EXECUTAR DO GITHUB: 
 1. Definir o diretório de trabalho do RStudio como a pasta "PIBITI" com os arquivos e imagens usadas
 2. Marcar a opção "Knit" -> "Knit Directory" -> "Current working directory" para mudar o diretório de trabalho a ser usado pelo RMarkdown, para a pasta definida anteriormente
+- Mesmo assim, as imagens usadas não aparecerão em "Knit" -> "Knit to HTML", provavelmente pelo fato que o script está em um diretório diferente das imagens, mesmo que esta mesma função funcione na execução normal do programa.
+
+Nada acima é relevante se o script for executado do OneDrive. Porém, ao usar "Knit to HTML", o arquivo HTML terá uma pasta a mais, linkada ao HTML (não sei porque). E também acredito ser melhor guardar o script no Github.
 
 ### Bibliotecas gerais usadas
 
@@ -255,7 +258,7 @@ Para achar o link, basta entrar no ICCAT, e ir para Statistics -\> Access to ICC
 
 Os datasets que se referem à "Task 1" incluem dados de pesca agrupados por grandes regiões, identificados apenas pelo seu código (ver regiões abaixo). E os datasets que se referem à "Task 2" incluem dados de pesca identificados pelas coordenadas, com resolução corresponde ao "GeoStrata", que podem ser 5x5 graus, 1x1 graus ou pontos lat/lon
 
-```{r}
+```{r echo=FALSE}
 # ver página 6 do ICCAT Maps - https://www.iccat.int/Data/ICCAT_maps.pdf
 knitr::include_graphics("imagens/regioes.png")
 ```
@@ -291,12 +294,13 @@ head(iccat_data_filtered$long)
 ```
 
 ```{r}
-# Todos os valores de lat/lon são absolutos
 min(iccat_data_filtered$Lon)
 max(iccat_data_filtered$Lat)
 ```
 
-```{r}
+Todos os valores de lat/lon são absolutos, então precisaremos ajustar isso usando os quadrantes para plotar com o Leaflet
+
+```{r echo=FALSE}
 # ver página 13 do ICCAT Maps - https://www.iccat.int/Data/ICCAT_maps.pdf
 knitr::include_graphics("imagens/quadrantes.png")
 ```
