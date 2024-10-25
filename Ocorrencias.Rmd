@@ -115,10 +115,16 @@ occ_raster_obis <- terra::rast(xmin=long_min, xmax=long_max, ymin=lat_min, ymax=
 # agrupando os pontos de ocorrência em células 
 occ_raster_obis <- terra::rasterize(data.matrix(obis_data_filtered[, c('long', 'lat')]), occ_raster_obis, fun=length)
 
+pal <- colorNumeric(
+  palette = "viridis",
+  domain = values(occ_raster_obis)
+)
+
 # visualizando o raster de ocorrências
 leaflet() %>% 
   addTiles() %>%  # Adiciona o mapa base
-  addRasterImage(colors="viridis", occ_raster_obis, opacity = 0.75)
+  addRasterImage(colors="viridis", occ_raster_obis, opacity = 0.75) %>%
+  addLegend(pal = pal, values = values(occ_raster_obis), title = "Densidade de ocorrências OBIS")
 ```
 
 ```{r}
@@ -213,10 +219,16 @@ occ_raster_gbif <- terra::rast(xmin=long_min, xmax=long_max, ymin=lat_min, ymax=
 # agrupando os pontos de ocorrência em células 
 occ_raster_gbif <- terra::rasterize(data.matrix(gbif_data_filtered[, c('long', 'lat')]), occ_raster_gbif, fun=length)
 
+pal <- colorNumeric(
+  palette = "viridis",
+  domain = values(occ_raster_gbif)
+)
+
 # visualizando o raster de ocorrências
 leaflet() %>% 
   addTiles() %>%  # Adiciona o mapa base
-  addRasterImage(colors="viridis", occ_raster_gbif, opacity = 0.75)
+  addRasterImage(colors="viridis", occ_raster_gbif, opacity = 0.75) %>%
+  addLegend(pal = pal, values = values(occ_raster_gbif), title = "Densidade de ocorrências GBIF")
 ```
 
 ```{r}
@@ -349,10 +361,16 @@ occ_raster_iccat <- terra::rast(xmin=long_min, xmax=long_max, ymin=lat_min, ymax
 # agrupando os pontos de ocorrência em células 
 occ_raster_iccat <- terra::rasterize(data.matrix(iccat_data_filtered_1x1[, c('long', 'lat')]), occ_raster_iccat, fun=length)
 
+pal <- colorNumeric(
+  palette = "viridis",
+  domain = values(occ_raster_iccat)
+)
+
 # visualizando o raster de ocorrências
 leaflet() %>% 
   addTiles() %>%  # Adiciona o mapa base
-  addRasterImage(colors="viridis", occ_raster_iccat, opacity = 0.75)
+  addRasterImage(colors="viridis", occ_raster_iccat, opacity = 0.75) %>%
+  addLegend(pal = pal, values = values(occ_raster_iccat), title = "Densidade de ocorrências ICCAT")
 ```
 
 ```{r}
