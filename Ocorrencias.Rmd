@@ -11,8 +11,6 @@ IMPORTANTE PARA EXECUTAR DO GITHUB:
 2. Marcar a opção "Knit" -> "Knit Directory" -> "Current working directory" para mudar o diretório de trabalho a ser usado pelo RMarkdown, para a pasta definida anteriormente
 - Mesmo assim, as imagens usadas não aparecerão em "Knit" -> "Knit to HTML", provavelmente pelo fato que o script está em um diretório diferente das imagens, mesmo que esta mesma função funcione na execução normal do programa.
 
-Nada acima é relevante se o script for executado do OneDrive. Porém, ao usar "Knit to HTML", o arquivo HTML terá uma pasta a mais, linkada ao HTML (não sei porque). E também acredito ser melhor guardar o script no Github.
-
 ### Bibliotecas gerais usadas
 
 ```{r}
