@@ -30,7 +30,15 @@ p_load(tidyverse, terra, leaflet, viridis)
 ### Variáveis gerais usadas
 
 ```{r}
-# limites de latitude e longitude globais (usar os limites de latitude como +90 e -90 irá dar um erro nos rasters)
+# paleta de cores do pacote "viridis"
+palette_name <- "viridis" 
+```
+
+Limites de latitude e longitude globais (pois usar os limites de
+latitude como +90 e -90 irá dar um erro nos rasters, na minha
+experiência)
+
+```{r}
 lat_min <- -85
 lat_max <- 85
 long_min <- -180
@@ -47,11 +55,10 @@ leaflet() %>%
   )
 ```
 
-Os limites escolhidos para a região do oceano atlântico sul
-provavelmente serão trocados quando definirmos a área de pesquisa
+Limites escolhidos para a região do oceano atlântico sul (acho que
+provavelmente serão trocados quando definirmos a área de pesquisa)
 
 ```{r}
-# limites de latitude e longitude do oceano atlântico sul
 lat_min_sul <- -42.5
 lat_max_sul <- 10
 long_min_sul <- -57.5
@@ -66,6 +73,18 @@ leaflet() %>%
     color = "blue", weight = 2,  # Cor e espessura da borda
     fill = FALSE, popup = "Area Oceano Atlantico Sul"
   )
+```
+
+Criando um raster com resolução de 1 grau (pois o número de linhas e
+colunas será apenas a diferença entre a latitude/longitude mínima e
+máxima) que será usado para visualizar as ocorrências de cada fonte
+
+Na minha experiência, usar "nrows" e "ncols" parece ser mais consistente
+que usar o atributo "res", mas poderíamos experimentar usar apenas "res"
+também, o que deixaria mais simples
+
+```{r}
+occ_raster <- terra::rast(xmin=long_min, xmax=long_max, ymin=lat_min, ymax=lat_max, nrows=lat_max-lat_min, ncols=long_max-long_min, crs="+proj=longlat +datum=WGS84")
 ```
 
 # OBIS
@@ -118,20 +137,23 @@ nrow(obis_data_filtered_ext) # 105025 ->
 ```
 
 ```{r}
-# criando um raster com resolução de 1 grau
-occ_raster_obis <- terra::rast(xmin=long_min, xmax=long_max, ymin=lat_min, ymax=lat_max, nrows=lat_max-lat_min, ncols=long_max-long_min, crs="+proj=longlat +datum=WGS84")
 # agrupando os pontos de ocorrência em células 
-occ_raster_obis <- terra::rasterize(data.matrix(obis_data_filtered[, c('long', 'lat')]), occ_raster_obis, fun=length)
+occ_raster_obis <- terra::rasterize(
+  data.matrix(obis_data_filtered[, c('long', 'lat')]), # dados espaciais (colunas com x e y) em forma de matriz
+  occ_raster, # objeto spatRaster criado anteriormente
+  fun=length # função de agrupamento (irá contar quantos pontos existe naquela célula)
+)
 
+# paleta de cores definida para os valores do raster
 pal <- colorNumeric(
-  palette = "viridis",
+  palette = palette_name,
   domain = values(occ_raster_obis)
 )
 
 # visualizando o raster de ocorrências
 leaflet() %>% 
   addTiles() %>%  # Adiciona o mapa base
-  addRasterImage(colors="viridis", occ_raster_obis, opacity = 0.75) %>%
+  addRasterImage(colors=palette_name, occ_raster_obis, opacity = 0.75) %>%
   addLegend(pal = pal, values = values(occ_raster_obis), title = "Densidade ocor. OBIS")
 ```
 
@@ -229,20 +251,23 @@ nrow(gbif_data_filtered_ext) # 28279 ->
 ```
 
 ```{r}
-# criando um raster com resolução de 1 grau
-occ_raster_gbif <- terra::rast(xmin=long_min, xmax=long_max, ymin=lat_min, ymax=lat_max, nrows=lat_max-lat_min, ncols=long_max-long_min, crs="+proj=longlat +datum=WGS84")
 # agrupando os pontos de ocorrência em células 
-occ_raster_gbif <- terra::rasterize(data.matrix(gbif_data_filtered[, c('long', 'lat')]), occ_raster_gbif, fun=length)
+occ_raster_gbif <- terra::rasterize(
+  data.matrix(gbif_data_filtered[, c('long', 'lat')]), # dados espaciais (colunas com x e y) em forma de matriz
+  occ_raster, # objeto spatRaster criado anteriormente
+  fun=length # função de agrupamento (irá contar quantos pontos existe naquela célula)
+)
 
+# paleta de cores definida para os valores do raster
 pal <- colorNumeric(
-  palette = "viridis",
+  palette = palette_name,
   domain = values(occ_raster_gbif)
 )
 
 # visualizando o raster de ocorrências
 leaflet() %>% 
   addTiles() %>%  # Adiciona o mapa base
-  addRasterImage(colors="viridis", occ_raster_gbif, opacity = 0.75) %>%
+  addRasterImage(colors=palette_name, occ_raster_gbif, opacity = 0.75) %>%
   addLegend(pal = pal, values = values(occ_raster_gbif), title = "Densidade ocor. GBIF")
 ```
 
@@ -386,20 +411,23 @@ nrow(iccat_data_filtered_1x1_ext) # 717901 ->
 ```
 
 ```{r}
-# criando um raster com resolução de 1 grau
-occ_raster_iccat <- terra::rast(xmin=long_min, xmax=long_max, ymin=lat_min, ymax=lat_max, nrows=lat_max-lat_min, ncols=long_max-long_min, crs="+proj=longlat +datum=WGS84")
 # agrupando os pontos de ocorrência em células 
-occ_raster_iccat <- terra::rasterize(data.matrix(iccat_data_filtered_1x1[, c('long', 'lat')]), occ_raster_iccat, fun=length)
+occ_raster_iccat <- terra::rasterize(
+  data.matrix(iccat_data_filtered_1x1[, c('long', 'lat')]), # dados espaciais (colunas com x e y) em forma de matriz
+  occ_raster, # objeto spatRaster criado anteriormente
+  fun=length # função de agrupamento (irá contar quantos pontos existe naquela célula)
+)
 
+# paleta de cores definida para os valores do raster
 pal <- colorNumeric(
-  palette = "viridis",
+  palette = palette_name,
   domain = values(occ_raster_iccat)
 )
 
 # visualizando o raster de ocorrências
 leaflet() %>% 
   addTiles() %>%  # Adiciona o mapa base
-  addRasterImage(colors="viridis", occ_raster_iccat, opacity = 0.75) %>%
+  addRasterImage(colors=palette_name, occ_raster_iccat, opacity = 0.75) %>%
   addLegend(pal = pal, values = values(occ_raster_iccat), title = "Densidade ocor. ICCAT")
 ```
 
