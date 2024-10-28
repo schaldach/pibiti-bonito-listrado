@@ -7,11 +7,18 @@ editor_options:
     wrap: 72
 ---
 
-IMPORTANTE PARA EXECUTAR DO GITHUB: 1. Definir o diretório de trabalho
-do RStudio como a pasta "PIBITI" com os arquivos e imagens usadas 2.
-Marcar a opção "Knit" -\> "Knit Directory" -\> "Current working
+IMPORTANTE PARA EXECUTAR DO GITHUB: 
+
+1. Definir o diretório de trabalho
+do RStudio como a pasta "PIBITI" com os arquivos e imagens usadas, em 
+"Files" -> "..." -> Escolher pasta "PIBITI", e então ir no símbolo 
+de configurações -> "Set as Working Directory"
+
+2. Marcar a opção "Knit" -\> "Knit Directory" -\> "Current working
 directory" para mudar o diretório de trabalho a ser usado pelo
-RMarkdown, para a pasta definida anteriormente - Mesmo assim, as imagens
+RMarkdown, para a pasta definida anteriormente 
+
+- Mesmo assim, as imagens
 usadas não aparecerão em "Knit" -\> "Knit to HTML", provavelmente pelo
 fato que o script está em um diretório diferente das imagens, mesmo que
 esta mesma função funcione na execução normal do programa.
