@@ -144,18 +144,15 @@ nrow(obis_data_filtered_sul) # 38425
 ### Extensão temporal dos dados
 
 ```{r}
-# tabela de valores referentes ao ano
-table(obis_data_filtered$year)
+# tabela de valores referentes ao ano (aqui não existem valores ausentes)
+table(obis_data_filtered$year, useNA="ifany")
 ```
 
-Podemos ver que temos os valores "Unknown" e "", precisaremos remover
-para visualizar os anos
+Podemos ver que temos os valores "Unknown" e "", então precisaremos
+remover e transformar os anos em dados numéricos para visualizar em um
+histograma
 
 ```{r}
-# quantos valores ausentes existem na coluna
-sum(is.na(obis_data_filtered$year))
-sum(is.na(obis_data_filtered_sul$year))
-
 # filtrando as linhas com os valores indesejados
 obis_data_filtered_time <- obis_data_filtered[obis_data_filtered$year != "" & obis_data_filtered$year != "Unknown",]
 obis_data_filtered_sul_time <- obis_data_filtered_sul[obis_data_filtered_sul$year != "" & obis_data_filtered_sul$year != "Unknown",]
@@ -163,8 +160,8 @@ nrow(obis_data_filtered_time) # 23553 (antes eram 105025)
 nrow(obis_data_filtered_sul_time) # 4848 (antes eram 38425)
 
 # anos mínimos e máximos dos dados globais e somente do oceano atlantico sul
-paste(min(obis_data_filtered_time$year, na.rm = TRUE), "-", max(obis_data_filtered_time$year, na.rm = TRUE))
-paste(min(obis_data_filtered_sul_time$year, na.rm = TRUE), "-", max(obis_data_filtered_sul_time$year, na.rm = TRUE))
+paste(min(obis_data_filtered_time$year), "-", max(obis_data_filtered_time$year))
+paste(min(obis_data_filtered_sul_time$year), "-", max(obis_data_filtered_sul_time$year))
 ```
 
 ```{r}
@@ -259,15 +256,12 @@ nrow(gbif_data_filtered_sul) # 1757
 
 ```{r}
 # tabela de valores referentes ao ano
-table(gbif_data_filtered$year)
+table(gbif_data_filtered$year, useNA="ifany")
 ```
 
 ```{r}
-# quantos valores ausentes existem na coluna
-sum(is.na(gbif_data_filtered$year))
-sum(is.na(gbif_data_filtered_sul$year))
-
 # anos mínimos e máximos dos dados globais e somente do oceano atlantico sul
+# precisamos usar na.rm = TRUE pois existem valores ausentes
 paste(min(gbif_data_filtered$year, na.rm = TRUE), "-", max(gbif_data_filtered$year, na.rm = TRUE))
 paste(min(gbif_data_filtered_sul$year, na.rm = TRUE), "-", max(gbif_data_filtered_sul$year, na.rm = TRUE))
 ```
@@ -418,18 +412,14 @@ nrow(iccat_data_filtered_1x1_sul) # 597570
 ### Extensão temporal dos dados
 
 ```{r}
-# tabela de valores referentes ao ano
-table(iccat_data_filtered_1x1$YearC)
+# tabela de valores referentes ao ano (aqui não existem valores ausentes)
+table(iccat_data_filtered_1x1$YearC, useNA="ifany")
 ```
 
 ```{r}
-# quantos valores ausentes existem na coluna
-sum(is.na(iccat_data_filtered_1x1$YearC))
-sum(is.na(iccat_data_filtered_1x1_sul$YearC))
-
 # anos mínimos e máximos dos dados globais e somente do oceano atlantico sul
-paste(min(iccat_data_filtered_1x1$YearC, na.rm = TRUE), "-", max(iccat_data_filtered_1x1$YearC, na.rm = TRUE))
-paste(min(iccat_data_filtered_1x1_sul$YearC, na.rm = TRUE), "-", max(iccat_data_filtered_1x1_sul$YearC, na.rm = TRUE))
+paste(min(iccat_data_filtered_1x1$YearC), "-", max(iccat_data_filtered_1x1$YearC))
+paste(min(iccat_data_filtered_1x1_sul$YearC), "-", max(iccat_data_filtered_1x1_sul$YearC))
 ```
 
 ```{r}
