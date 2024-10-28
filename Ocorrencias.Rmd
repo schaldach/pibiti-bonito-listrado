@@ -6,10 +6,15 @@ editor_options:
   markdown: 
     wrap: 72
 ---
-IMPORTANTE PARA EXECUTAR DO GITHUB: 
-1. Definir o diretório de trabalho do RStudio como a pasta "PIBITI" com os arquivos e imagens usadas
-2. Marcar a opção "Knit" -> "Knit Directory" -> "Current working directory" para mudar o diretório de trabalho a ser usado pelo RMarkdown, para a pasta definida anteriormente
-- Mesmo assim, as imagens usadas não aparecerão em "Knit" -> "Knit to HTML", provavelmente pelo fato que o script está em um diretório diferente das imagens, mesmo que esta mesma função funcione na execução normal do programa.
+
+IMPORTANTE PARA EXECUTAR DO GITHUB: 1. Definir o diretório de trabalho
+do RStudio como a pasta "PIBITI" com os arquivos e imagens usadas 2.
+Marcar a opção "Knit" -\> "Knit Directory" -\> "Current working
+directory" para mudar o diretório de trabalho a ser usado pelo
+RMarkdown, para a pasta definida anteriormente - Mesmo assim, as imagens
+usadas não aparecerão em "Knit" -\> "Knit to HTML", provavelmente pelo
+fato que o script está em um diretório diferente das imagens, mesmo que
+esta mesma função funcione na execução normal do programa.
 
 ### Bibliotecas gerais usadas
 
@@ -42,7 +47,8 @@ leaflet() %>%
   )
 ```
 
-Os limites escolhidos para a região do oceano atlântico sul provavelmente serão trocados quando definirmos a área de pesquisa
+Os limites escolhidos para a região do oceano atlântico sul
+provavelmente serão trocados quando definirmos a área de pesquisa
 
 ```{r}
 # limites de latitude e longitude do oceano atlântico sul
@@ -66,9 +72,12 @@ leaflet() %>%
 
 <https://mapper.obis.org/?taxonid=127018#>
 
-Para achar o link, basta entrar no OBIS, ir em Data -\> Mapper, selecionar a espécie do Katsuwonus Pelamis (basta digitar no buscador)
+Para achar o link, basta entrar no OBIS, ir em Data -\> Mapper,
+selecionar a espécie do Katsuwonus Pelamis (basta digitar no buscador)
 
-Para fazer o download, basta clicar no botão verde na layer selecionada da espécie e selecionar "Download", e então escolher apenas "(Extended)MeasurementOrFact", digitar o email e prosseguir
+Para fazer o download, basta clicar no botão verde na layer selecionada
+da espécie e selecionar "Download", e então escolher apenas
+"(Extended)MeasurementOrFact", digitar o email e prosseguir
 
 O .csv usado é o arquivo "Occurrence.csv" dentro do zip que foi baixado
 
@@ -96,7 +105,8 @@ head(obis_data_filtered$lat)
 head(obis_data_filtered$long)
 ```
 
-As coordenadas de latitude e longitude são definidas como valores contínuos, com 4 casas decimais
+As coordenadas de latitude e longitude são definidas como valores
+contínuos, com 4 casas decimais
 
 ### Extensão espacial dos dados
 
@@ -122,7 +132,7 @@ pal <- colorNumeric(
 leaflet() %>% 
   addTiles() %>%  # Adiciona o mapa base
   addRasterImage(colors="viridis", occ_raster_obis, opacity = 0.75) %>%
-  addLegend(pal = pal, values = values(occ_raster_obis), title = "Densidade de ocorrências OBIS")
+  addLegend(pal = pal, values = values(occ_raster_obis), title = "Densidade ocor. OBIS")
 ```
 
 ```{r}
@@ -138,7 +148,8 @@ nrow(obis_data_filtered_sul) # 38425
 table(obis_data_filtered$year)
 ```
 
-Podemos ver que temos os valores "Unknown" e "", precisaremos remover para visualizar os anos
+Podemos ver que temos os valores "Unknown" e "", precisaremos remover
+para visualizar os anos
 
 ```{r}
 # quantos valores ausentes existem na coluna
@@ -166,13 +177,20 @@ hist(as.numeric(obis_data_filtered_sul_time$year), main="Intervalo temporal dos 
 
 <https://www.gbif.org/species/2374191>
 
-Para achar o link, basta entrar no GBIF, ir em Species, procurar por Katsuwonus Pelamis, clicar no 1° resultado -\> Katsuwonus pelamis (Linnaeus, 1758)
+Para achar o link, basta entrar no GBIF, ir em Species, procurar por
+Katsuwonus Pelamis, clicar no 1° resultado -\> Katsuwonus pelamis
+(Linnaeus, 1758)
 
-Para fazer o download, é preciso clicar no botão verde "Occurrences", ir para "Download", clicar no botão verde "Simple", e então esperar o download e finalmente clicar no botão verde "Download"
+Para fazer o download, é preciso clicar no botão verde "Occurrences", ir
+para "Download", clicar no botão verde "Simple", e então esperar o
+download e finalmente clicar no botão verde "Download"
 
 O .csv usado é o arquivo único encontrado dentro do zip que foi baixado
 
-Notas: Usar o filtro de Occurence Status para “Present” para não usar dados de ausência, ou “Everything” para usar ambos de presença e ausência. O .csv utilizado neste exemplo possui somente os dados de presença do bonito-listrado
+Notas: Usar o filtro de Occurence Status para “Present” para não usar
+dados de ausência, ou “Everything” para usar ambos de presença e
+ausência. O .csv utilizado neste exemplo possui somente os dados de
+presença do bonito-listrado
 
 O GBIF usa, a princípio, de muitos do mesmos datasets do OBIS
 
@@ -200,7 +218,9 @@ head(gbif_data_filtered$lat)
 head(gbif_data_filtered$long)
 ```
 
-As coordenadas de latitude e longitude são definidas como valores contínuos, com 4 casas decimais. Os valores que possuem mais casas são apenas arredondamentos, a princípio
+As coordenadas de latitude e longitude são definidas como valores
+contínuos, com 4 casas decimais. Os valores que possuem mais casas são
+apenas arredondamentos, a princípio
 
 ### Extensão espacial dos dados
 
@@ -226,7 +246,7 @@ pal <- colorNumeric(
 leaflet() %>% 
   addTiles() %>%  # Adiciona o mapa base
   addRasterImage(colors="viridis", occ_raster_gbif, opacity = 0.75) %>%
-  addLegend(pal = pal, values = values(occ_raster_gbif), title = "Densidade de ocorrências GBIF")
+  addLegend(pal = pal, values = values(occ_raster_gbif), title = "Densidade ocor. GBIF")
 ```
 
 ```{r}
@@ -264,24 +284,40 @@ Datasets - <https://www.iccat.int/en/accesingdb.html>
 
 Manual ICCAT - <https://www.iccat.int/en/iccatmanual.html>
 
-Para achar o link, basta entrar no ICCAT, e ir para Statistics -\> Access to ICCAT Statistics Databases
+Para achar o link, basta entrar no ICCAT, e ir para Statistics -\>
+Access to ICCAT Statistics Databases
 
-Os datasets que se referem à "Task 1" incluem dados de pesca agrupados por grandes regiões, identificados apenas pelo seu código (ver regiões abaixo). E os datasets que se referem à "Task 2" incluem dados de pesca identificados pelas coordenadas, com resolução corresponde ao "GeoStrata", que podem ser 5x5 graus, 1x1 graus ou pontos lat/lon
+Os datasets que se referem à "Task 1" incluem dados de pesca agrupados
+por grandes regiões, identificados apenas pelo seu código (ver regiões
+abaixo). E os datasets que se referem à "Task 2" incluem dados de pesca
+identificados pelas coordenadas, com resolução corresponde ao
+"GeoStrata", que podem ser 5x5 graus, 1x1 graus ou pontos lat/lon
 
 ```{r echo=FALSE}
 # ver página 6 do ICCAT Maps - https://www.iccat.int/Data/ICCAT_maps.pdf
 knitr::include_graphics("imagens/regioes.png")
 ```
 
-Uma explicação mais detalhada existe tanto no manual geral, em "1.1 What is ICCAT?" como no glossário, disponível em <https://www.iccat.int/Documents/SCRS/Manual/Appendices/Appendix%207%20glossary.zip>
+Uma explicação mais detalhada existe tanto no manual geral, em "1.1 What
+is ICCAT?" como no glossário, disponível em
+<https://www.iccat.int/Documents/SCRS/Manual/Appendices/Appendix%207%20glossary.zip>
 
 A task 1 não será utilizada nesta exploração.
 
-Para os dados referentes à Task 2, o dataset usado pode ser encontrado a partir da página de datasets em "Sample fishing statistics and fish sizes" -\> "Task 2 size" -\> "T2SZ - size frequencies (observed)" -\> "SKJ Skipjack tuna" . A sigla "SZ" se refere ao fato que as amostras biológicas do peixe foram medidas/pesadas, e não estimadas. Este dataset foi escolhido para análise inicial pois fornecerá as medições reais dos peixes e também terá a maior resolução espacial entre os datasets disponibilizados pelo iccat (outros parecem possuir resolução de 5x5 graus, apenas)
+Para os dados referentes à Task 2, o dataset usado pode ser encontrado a
+partir da página de datasets em "Sample fishing statistics and fish
+sizes" -\> "Task 2 size" -\> "T2SZ - size frequencies (observed)" -\>
+"SKJ Skipjack tuna" . A sigla "SZ" se refere ao fato que as amostras
+biológicas do peixe foram medidas/pesadas, e não estimadas. Este dataset
+foi escolhido para análise inicial pois fornecerá as medições reais dos
+peixes e também terá a maior resolução espacial entre os datasets
+disponibilizados pelo iccat (outros parecem possuir resolução de 5x5
+graus, apenas)
 
 O .csv usado é o arquivo único encontrado dentro do zip que foi baixado
 
-Explicação das variáveis do dataset disponível em <https://www.iccat.int/Data/t2size/ReadmeT2SZ-CS.pdf>
+Explicação das variáveis do dataset disponível em
+<https://www.iccat.int/Data/t2size/ReadmeT2SZ-CS.pdf>
 
 ### Exploração inicial (Task 2)
 
@@ -299,8 +335,8 @@ nrow(iccat_data_filtered) # 786587
 
 ```{r}
 # Formato dos dados espaciais
-head(iccat_data_filtered$lat)
-head(iccat_data_filtered$long)
+head(iccat_data_filtered$Lat)
+head(iccat_data_filtered$Lon)
 ```
 
 ```{r}
@@ -308,7 +344,8 @@ min(iccat_data_filtered$Lon)
 max(iccat_data_filtered$Lat)
 ```
 
-Todos os valores de lat/lon são absolutos, então precisaremos ajustar isso usando os quadrantes para plotar com o Leaflet
+Todos os valores de lat/lon são absolutos, então precisaremos ajustar
+isso usando os quadrantes para plotar com o Leaflet
 
 ```{r echo=FALSE}
 # ver página 13 do ICCAT Maps - https://www.iccat.int/Data/ICCAT_maps.pdf
@@ -336,7 +373,8 @@ table(iccat_data_filtered$GeoStrata)
 explicação das diferentes resoluções:
 <https://www.iccat.int/Forms/CODES_SquareTypes.xlsx>
 
-Pelo que entendi, a resolução "ICCAT" quer dizer que ele apenas irá identificar a área conforme o código da região
+Pelo que entendi, a resolução "ICCAT" quer dizer que ele apenas irá
+identificar a área conforme o código da região
 
 ```{r}
 # usando apenas os registros com resolução de 1x1 grau
@@ -368,7 +406,7 @@ pal <- colorNumeric(
 leaflet() %>% 
   addTiles() %>%  # Adiciona o mapa base
   addRasterImage(colors="viridis", occ_raster_iccat, opacity = 0.75) %>%
-  addLegend(pal = pal, values = values(occ_raster_iccat), title = "Densidade de ocorrências ICCAT")
+  addLegend(pal = pal, values = values(occ_raster_iccat), title = "Densidade ocor. ICCAT")
 ```
 
 ```{r}
