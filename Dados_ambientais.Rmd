@@ -1,0 +1,233 @@
+---
+title: "Documentação de todas as fontes de dados climáticos do oceano"
+output: html_document
+date: "2024-10-28"
+---
+
+IMPORTANTE PARA EXECUTAR DO GITHUB:
+
+1.  Definir o diretório de trabalho do RStudio como a pasta "PIBITI" com os arquivos e imagens usadas, em "Files" -\> "..." -\> Escolher pasta "PIBITI", e então ir no símbolo de configurações -\> "Set as Working Directory"
+
+2.  Marcar a opção "Knit" -\> "Knit Directory" -\> "Current working directory" para mudar o diretório de trabalho a ser usado pelo RMarkdown, para a pasta definida anteriormente
+
+-   Mesmo assim, as imagens usadas não aparecerão em "Knit" -\> "Knit to HTML", provavelmente pelo fato que o script está em um diretório diferente das imagens, mesmo que esta mesma função funcione na execução normal do programa.
+
+### Bibliotecas gerais usadas
+
+```{r}
+if(!require(pacman)) {
+    install.packages("pacman", dependencies = TRUE);
+}
+library(pacman)
+# Instalando pacotes
+p_load(tidyverse, terra, leaflet, readxl)
+```
+
+### Variáveis gerais usadas
+
+Limites de latitude e longitude globais (pois usar os limites de latitude como +90 e -90 irá dar um erro nos rasters, na minha experiência)
+
+Algumas colunas do Aquamaps têm valores muito extremos nas maiores latitudes, por isso devemos ou limitar o tamanho dos rasters até \~75 graus de latitude, ou tratar esses valores em cada dataset, para conseguir visualizar os rasters em um plot. Por isso os limites globais escolhidos aqui são menores que os limites escolhidos para as ocorrências
+
+```{r}
+lat_min <- -75
+lat_max <- 75
+long_min <- -180
+long_max <- 180
+
+# visualizando limites
+leaflet() %>%
+  addTiles() %>%  # Adiciona o mapa base
+  addRectangles(
+    lng1 = long_min, lat1 = lat_min,  # Canto inferior esquerdo
+    lng2 = long_max, lat2 = lat_max,  # Canto superior direito
+    color = "blue", weight = 2,  # Cor e espessura da borda
+    fill = FALSE, popup = "Area Global"
+  )
+```
+
+# Aquamaps
+
+<https://www.aquamaps.org/main/envt_data.php>
+
+O link pode ser encontrado entrando no Aquamaps e clicando em "Environmental Data"
+
+Para fazer o download, basta clicar em "Download current version **here**."
+
+Ele irá fornecer um arquivo do formato .csv, sendo o arquivo principal o "hcaf_v7.csv" dentro do zip que foi baixado. Também terá um PDF, referente a como citar o Aquamaps, e um arquivo .xlsx com metadados sobre as variáveis
+
+### Exploração inicial (meta-dados)
+
+```{r}
+# Carregando os meta-dados
+aquamaps_metadata <- read_excel("dados_ambientais/aquamaps/HCAFMetadata_v7.xlsx", range = "A21:K79", na="N.A.")
+names(aquamaps_metadata)
+
+# visualizando as variáveis mais interessantes
+head(aquamaps_metadata[40:45,])
+```
+
+```{r}
+# período temporal dos dados
+table(aquamaps_metadata$TimePeriod, useNA="ifany")
+```
+
+```{r}
+table(aquamaps_metadata$TimeYear, useNA="ifany")
+```
+
+Assim como descrito na página do Aquamaps, os dados são compilados de diversas fontes diferentes. Alguns são médias anuais em um determinado intervalo de tempo, como a temperatura da superfície (SSTAnMean), e outros são medições constantes com o tempo, como a profundidade (DepthMean). Estas diferenças estão todas documentadas no arquivo de meta-dados, que descreve cada uma das variáveis presentes no dataset e várias outras informações sobre elas, como o intervalo de tempo que foram coletadas, de onde, etc.
+
+### Exploração inicial (dados ambientais)
+
+```{r}
+# Carregando o arquivo com os dados ambientais
+aquamaps_data <- read.csv('dados_ambientais/aquamaps/hcaf_v7.csv')
+names(aquamaps_data)
+nrow(aquamaps_data) # (90x4) x (180x4) = 259200 
+head(aquamaps_data)
+```
+
+```{r}
+# resolução de 0.5 graus, e teremos 1 linha correspondente a cada "pixel"
+min(aquamaps_data$CenterLat)
+max(aquamaps_data$CenterLat)
+min(aquamaps_data$CenterLong)
+max(aquamaps_data$CenterLong)
+```
+
+### Transformando em rasters
+
+```{r}
+dados_ambientais <- c('DepthMean','SSTAnMean','SalinityMean','OxyMean') # algumas variáveis escolhidas para visualização
+
+# criando um raster com resolução de 0.5 graus e limites de lat/lon globais
+aquamaps_raster <- terra::rast(xmin=long_min, xmax=long_max, ymin=lat_min, ymax=lat_max, nrows=(lat_max-lat_min)*2, ncols=(long_max-long_min)*2, crs="+proj=longlat +datum=WGS84")
+
+# transformando cada linha em células (a função mean não faz diferença, pois só terá 1 linha para cada célula)
+aquamaps_raster <- terra::rasterize(data.matrix(aquamaps_data[, c('CenterLong', 'CenterLat')]), aquamaps_raster, values=aquamaps_data[, dados_ambientais], fun=mean)
+
+# plotando cada variável escolhida anteriormente com a função "plot" do "terra"
+terra::plot(aquamaps_raster)
+```
+
+# Copernicus
+
+<https://marine.copernicus.eu/access-data> (será preciso criar uma conta)
+
+O link pode ser encontrado entrando no Marine Copernicus e clicando em "Access Data" -\> "Ocean Products", onde os mais interessantes parecem ser "Global Ocean Physics" e "Global Ocean Biogeochemistry" (ambos terão uma versão mais atualizada com previsões para o futuro próximo, Analysis, e uma mais antiga, Reanalysis)
+
+"Global Ocean Physics" tem uma versão de 31/12/2018 - 7/11/2024 com medidas hourly, daily e monthly (eu acredito que será as médias ao longo de cada um dos intervalos de tempo) e uma versão de 31/12/1992 - 2/09/2024 com medidas daily e monthly
+
+"Global Ocean Biogeochemistry" tem uma versão de 30/09/2021 - 31/10/2024 com medidas daily e monthly e uma versão de 31/12/1992 - 30/08/2024 com medidas daily e monthly
+
+As informações estão disponíveis na página dos produtos: https://data.marine.copernicus.eu/products
+
+Para essa análise, irei usar as versões mais atuais de ambos.
+
+### Exploração inicial (Global Ocean Physics)
+
+Para fazer o download do Global Ocean Physics usado, basta ir em <https://data.marine.copernicus.eu/product/GLOBAL_ANALYSISFORECAST_PHY_001_024/description> que também terá a descrição do produto, ir para "Data access", e os dados estarão espalhados por diversos datasets. A descrição de cada um pode ser encontrada em "User Manual". Eu escolhi para usar aqui o "cmems_mod_glo_phy_anfc_0.083deg_P1M-m" pois parece ter o maior número de variáveis em um só dataset, e tem a escala temporal mensal (o P1D tem a escala diária, que seria detalhada demais, apesar que ambos tem o mesmo tamanho). Então, clicamos no campo "Form" do dataset escolhido e por fim clicamos em "Download" na nova página, com todas as variáveis selecionadas.
+
+Ele irá fornecer um arquivo do formato .nc (NetCDF), com uma resolução de 1/12 graus
+
+```{r}
+# Carregando o arquivo .nc com os dados ambientais já em raster
+copernicus_raster <- terra::rast('dados_ambientais/copernicus/cmems_mod_glo_phy_anfc_0.083deg_P1M-m_1730211956031.nc')
+names(copernicus_raster)
+```
+
+```{r echo=FALSE}
+# imagem retirada do User manual, página 12
+knitr::include_graphics("imagens/variaveis_copernicus_physics_1.png")
+knitr::include_graphics("imagens/variaveis_copernicus_physics_2.png")
+```
+
+2D: não possui a dimensão de profundidade que o dado foi retirado, eu imagino
+
+```{r}
+terra::res(copernicus_raster)
+terra::ext(copernicus_raster)
+```
+
+```{r}
+# Temperatura no fundo do mar
+terra::plot(copernicus_raster, 'tob')
+# Salinidade no fundo do mar
+terra::plot(copernicus_raster, 'sob')
+```
+
+### Exploração inicial (Global Ocean Biogeochemistry)
+
+Para fazer o download do Global Ocean Biogeochemistry usado, basta ir em <https://data.marine.copernicus.eu/product/GLOBAL_ANALYSISFORECAST_BGC_001_028/services> e o restante do fluxo é igual ao dataset anterior, com os dados espalhados em diversos datasets, uma descrição geral, e um manual para o usuário em "User Manual". Eu escolhi para usar aqui o "cmems_mod_glo_bgc-car_anfc_0.25deg_P1M-m" pois parece ter variáveis que poderiam ser interessantes para a distribuição do bonito-listrado: pH, alcalinidade total e carbono inorgânico dissolvido, e também possui a escala temporal mensal. Então, clicamos no campo "Form" do dataset escolhido e por fim clicamos em "Download" na nova página, com todas as variáveis selecionadas.
+
+Ele irá fornecer um arquivo do formato .nc (NetCDF), com uma resolução de 1/4 graus, e com 50 níveis verticais entre 0 e 5700 metros de profundidade
+
+```{r}
+# Carregando o arquivo .nc com os dados ambientais já em raster
+copernicus_raster <- terra::rast('dados_ambientais/copernicus/cmems_mod_glo_bgc-car_anfc_0.25deg_P1M-m_1730221973238.nc')
+names(copernicus_raster)
+```
+
+```{r echo=FALSE}
+# imagem retirada do User manual, página 12
+knitr::include_graphics("imagens/variaveis_copernicus_biogeo.png")
+```
+
+```{r}
+# Resolução e extensão do raster
+terra::res(copernicus_raster)
+terra::ext(copernicus_raster)
+```
+
+```{r}
+# pH
+terra::plot(copernicus_raster, 'ph_depth=0.49402538')
+# Carbono Inorgânico dissolvido
+terra::plot(copernicus_raster, 'dissic_depth=0.49402538')
+```
+
+2 perguntas levantadas durante a análise:
+
+1.  como acessar os diferentes níveis de profundidade?
+
+2.  quero entender se o dataset apresenta a média durante todos os anos, ou uma medida para cada mês? perceba que os arquivos P1M e P1D têm o mesmo tamanho... então como a escala temporal influencia nisso? O que seria monthly ou daily? Conseguimos separar os dados em relação ao período de tempo?
+
+R: Para ambas as perguntas, devemos apenas olhar para a página de download dos arquivos netcdf. Lá, embaixo da página, temos os valores de data e profundidade escolhidos. Por padrão, será apenas 1 valor para ambos, mas podemos escolher ter múltiplas medidas (de diferentes profundidades e/ou diferentes datas). Por isso o dataset mensal a princípio tem o mesmo tamanho que o diário. Mas se escolhermos um intervalo de tempo, o diário terá muito mais dados que o mensal, e todas as camadas escolhidas aparecerão como "names" do raster. Basta observar que o tamanho do arquivo aumenta proporcionalmente quando alteramos esses parâmetros.
+
+O Global Ocean Physics terá apenas a data como possível dimensão a mais, já que os dados são 2D, não tendo profundidade associada.
+
+Para os datasets P1M, o tamanho do arquivo só aumenta quando a data escolhida está a 1 mês de "distância", pois as medidas são mensais. Para os diários, será a 1 dia de distância, e para os datasets com dados por hora, a 1 hora de distância. Minha única dúvida é se essas medidas são as medidas absolutas, registradas naquele momento apenas, ou a média ao longo desse intervalo de tempo de espaçamento (acredito ser a média ao longo do intervalo, mas não tenho certeza)
+
+### Global Ocean Biogeochemistry com 5 profundidades (de 0.49 a 5.08) e 2 datas (01/08/2024 a 01/09/2024)
+
+```{r}
+# Carregando o arquivo .nc com os dados ambientais já em raster
+copernicus_raster_2 <- terra::rast('dados_ambientais/copernicus/cmems_mod_glo_bgc-car_anfc_0.25deg_P1M-m_1730225721519.nc')
+names(copernicus_raster_2)
+```
+
+As datas são diferenciadas por "\_1" e "\_2", e as profundidades são diferenciadas por "\_depth=x" para cada profundidade
+
+```{r}
+# pH
+terra::plot(copernicus_raster_2, 'ph_depth=5.0782237_1')
+# Carbono Inorgânico dissolvido
+terra::plot(copernicus_raster_2, 'dissic_depth=5.0782237_1')
+```
+
+# World Ocean Atlas (WOA)
+
+https://www.ncei.noaa.gov/products/world-ocean-atlas
+
+Os dados podem ser encontrados indo, a partir do link, em "Data", onde então poderemos escolher entre cada uma das variáveis: Temperature (°C), Salinity (unitless), Dissolved Oxygen (µmol/kg), Percent Oxygen Saturation (%), Apparent Oxygen Utilization (µmol/kg), Silicate (µmol/kg), Phosphate (µmol/kg), Nitrate (µmol/kg). Todas parecem estar disponíveis nas resoluções de 1° e 5°, e algumas estão na resolução de 0.25°. Podemos escolher para cada uma o período climatológico e a quantidade de medidas nesse período, entre anual, trimestral ou mensal, assim como o formato do arquivo entre .csv, .nc, entre outros.
+
+Salinidade e temperatura estão disponíveis em 1955-1964, 1965-1974, 1975-1984, 1985-1994, 1995-2004, 2005-2014, 2015-2022 e 3 normais climatológicas para períodos de 30 anos: 1971-2000, 1981-2010, e 1991-2020. 
+
+phosphate, silicate, e nitrate estão apenas para 1965-2022. 
+
+Oxygen, Apparent Oxygen Utilization, e Percent Oxygen Saturation estão disponíveis para 1965-2022 e 1971-2000.
+
+As informações estão disponíveis na página do WOA 2023: https://www.ncei.noaa.gov/access/world-ocean-atlas-2023/
+
+
