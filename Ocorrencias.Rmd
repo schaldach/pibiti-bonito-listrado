@@ -321,7 +321,7 @@ identificados pelas coordenadas, com resolução corresponde ao
 
 ```{r echo=FALSE}
 # ver página 6 do ICCAT Maps - https://www.iccat.int/Data/ICCAT_maps.pdf
-knitr::include_graphics("imagens/regioes.png")
+knitr::include_graphics("imagens/regioes_iccat_skj.png")
 ```
 
 Uma explicação mais detalhada existe tanto no manual geral, em "1.1 What
@@ -375,7 +375,7 @@ isso usando os quadrantes para plotar com o Leaflet
 
 ```{r echo=FALSE}
 # ver página 13 do ICCAT Maps - https://www.iccat.int/Data/ICCAT_maps.pdf
-knitr::include_graphics("imagens/quadrantes.png")
+knitr::include_graphics("imagens/quadrantes_iccat.png")
 ```
 
 ```{r}
