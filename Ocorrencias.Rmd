@@ -96,7 +96,17 @@ occ_raster <- terra::rast(xmin=long_min, xmax=long_max, ymin=lat_min, ymax=lat_m
 
 # OBIS
 
-<https://mapper.obis.org/?taxonid=127018#>
+### Resumo
+
+N° ocorrências: 105025 (global), 38425 ("sul")
+
+Extensão temporal: 1835 - 2019 (global), 1905 - 2012 ("sul")
+
+Resolução espacial: 0.0001°
+
+Link: <https://mapper.obis.org/?taxonid=127018#>
+
+-----
 
 Para achar o link, basta entrar no OBIS, ir em Data -\> Mapper,
 selecionar a espécie do Katsuwonus Pelamis (basta digitar no buscador)
@@ -201,7 +211,17 @@ hist(as.numeric(obis_data_filtered_sul_time$year), main="Intervalo temporal dos 
 
 # GBIF
 
-<https://www.gbif.org/species/2374191>
+### Resumo
+
+N° ocorrências: 29915 (global), 1757 ("sul")
+
+Extensão temporal: 1835 - 2024 (global), 1859 - 2024 ("sul")
+
+Resolução espacial: 0.0001°
+
+Link: <https://www.gbif.org/species/2374191>
+
+-----
 
 Para achar o link, basta entrar no GBIF, ir em Species, procurar por
 Katsuwonus Pelamis, clicar no 1° resultado -\> Katsuwonus pelamis
@@ -245,8 +265,7 @@ head(gbif_data_filtered$long)
 ```
 
 As coordenadas de latitude e longitude são definidas como valores
-contínuos, com 4 casas decimais. Os valores que possuem mais casas são
-apenas arredondamentos, a princípio
+contínuos, com 4 casas decimais.
 
 ### Extensão espacial dos dados
 
@@ -306,9 +325,19 @@ hist(gbif_data_filtered_sul$year, main="Intervalo temporal dos dados do GBIF do 
 
 # ICCAT
 
-Datasets - <https://www.iccat.int/en/accesingdb.html>
+### Resumo
 
-Manual ICCAT - <https://www.iccat.int/en/iccatmanual.html>
+N° ocorrências: 786587 (global), 597570 ("sul")
+
+Extensão temporal: 1968 - 2022 (global e "sul")
+
+Resolução espacial: 1°, 5°, 10°, 20° (mesmo aqueles com resolução Lat/Lon parecem ser de 1°)
+
+Link: <https://www.iccat.int/en/accesingdb.html>
+
+-----
+
+O Manual ICCAT pode ser encontrado em <https://www.iccat.int/en/iccatmanual.html>
 
 Para achar o link, basta entrar no ICCAT, e ir para Statistics -\>
 Access to ICCAT Statistics Databases
@@ -400,7 +429,7 @@ explicação das diferentes resoluções:
 <https://www.iccat.int/Forms/CODES_SquareTypes.xlsx>
 
 Pelo que entendi, a resolução "ICCAT" quer dizer que ele apenas irá
-identificar a área conforme o código da região
+identificar a área conforme o código da região - todos esses pontos parecem ter latitude e longitude iguais a 0
 
 ```{r}
 # usando apenas os registros com resolução de 1x1 grau

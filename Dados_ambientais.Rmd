@@ -48,11 +48,15 @@ leaflet() %>%
 
 # Aquamaps
 
-### Resumo:
+### Resumo
 
-Resolução: 0.5 graus
+Resolução espacial: 0.5 graus
 
-Intervalo temporal: 2000-2014, principalmente
+Resolução temporal: - (todos estão descritos como Annual average, então acredito que os valores serão a média de todos os anos ao longo da extensão temporal)
+
+Extensão temporal: 2000-2014
+
+Extensão espacial: Lat -90° a 90°, Lon -180° a 180°
 
 Variáveis: variáveis "burocráticas", elevação, profundidade, temperatura (superfície e fundo), salinidade (superfície e fundo), produção primária, concentração do gelo marinho, oxigênio molecular dissolvido (superfície e fundo), distância até terra.
 
@@ -115,7 +119,12 @@ dados_ambientais <- c('DepthMean','SSTAnMean','SalinityMean','OxyMean') # alguma
 aquamaps_raster <- terra::rast(xmin=long_min, xmax=long_max, ymin=lat_min, ymax=lat_max, nrows=(lat_max-lat_min)*2, ncols=(long_max-long_min)*2, crs="+proj=longlat +datum=WGS84")
 
 # transformando cada linha em células (a função mean não faz diferença, pois só terá 1 linha para cada célula)
-aquamaps_raster <- terra::rasterize(data.matrix(aquamaps_data[, c('CenterLong', 'CenterLat')]), aquamaps_raster, values=aquamaps_data[, dados_ambientais], fun=mean)
+aquamaps_raster <- terra::rasterize(
+  data.matrix(aquamaps_data[, c('CenterLong', 'CenterLat')]), # dados espaciais (colunas com x e y) em forma de matriz
+  aquamaps_raster, # objeto spatRaster criado anteriormente
+  values=aquamaps_data[, dados_ambientais], # data.frame com os valores que serão usados
+  fun=mean
+)
 ```
 
 ```{r}
@@ -134,19 +143,25 @@ terra::plot(aquamaps_raster)
 
 ### Resumo
 
+Resolução espacial: 1/12° (0.083) e 1/4° (0.25)
 
+Resolução temporal: por hora (somente para alguns datasets), diária, mensal
 
-Link: <https://marine.copernicus.eu/access-data> (será preciso criar uma conta)
+Extensão espacial: Lat -80° a 90°, Lon -180° a 180°, Profundidade 0.5m a 5727.9m (somente para alguns datasets)
+
+Extensão temporal: 1992 - 2024 (incluindo 10 dias de previsão para o futuro para os datasets que são atualizados semanalmente)
+
+Variáveis: temperature, salinity, currents, sea level, mixed layer depth, ice parameters (não entendi se estes são da superfície ou fundo do mar - ver página de descrição do dataset), sea level height, temperature and currents. biogeochemical parameters (chlorophyll, nitrate, phosphate, silicate, dissolved oxygen, dissolved iron, primary production, phytoplankton, PH, and surface partial pressure of carbon dioxyde) over the global ocean.
+
+Link: <https://data.marine.copernicus.eu/products> (será preciso criar uma conta)
 
 -----
 
-O link pode ser encontrado entrando no Marine Copernicus e clicando em "Access Data" -\> "Ocean Products", onde os mais interessantes parecem ser "Global Ocean Physics" e "Global Ocean Biogeochemistry" (ambos terão uma versão mais atualizada com previsões para o futuro próximo, Analysis, e uma mais antiga, Reanalysis)
+O link pode ser encontrado entrando no Marine Copernicus e clicar em "Access Data" -\> "Ocean Products", onde os mais interessantes parecem ser "Global Ocean Physics" e "Global Ocean Biogeochemistry" (ambos terão uma versão mais atualizada com previsões para o futuro próximo, Analysis, e uma mais antiga, Reanalysis)
 
 "Global Ocean Physics" tem uma versão de 31/12/2018 - 7/11/2024 com medidas hourly, daily e monthly (eu acredito que será as médias ao longo de cada um dos intervalos de tempo) e uma versão de 31/12/1992 - 2/09/2024 com medidas daily e monthly
 
 "Global Ocean Biogeochemistry" tem uma versão de 30/09/2021 - 31/10/2024 com medidas daily e monthly e uma versão de 31/12/1992 - 30/08/2024 com medidas daily e monthly
-
-As informações estão disponíveis na página dos produtos: <https://data.marine.copernicus.eu/products>
 
 Para essa análise, irei usar as versões mais atuais de ambos.
 
@@ -168,7 +183,7 @@ knitr::include_graphics("imagens/variaveis_copernicus_physics_1.png")
 knitr::include_graphics("imagens/variaveis_copernicus_physics_2.png")
 ```
 
-2D: não possui a dimensão de profundidade que o dado foi retirado, eu imagino
+2D = não possui a dimensão de profundidade que o dado foi retirado
 
 ```{r}
 # resolução
@@ -186,7 +201,7 @@ terra::plot(copernicus_raster_phy, c('tob','sob'))
 
 Para fazer o download do Global Ocean Biogeochemistry usado, basta ir em <https://data.marine.copernicus.eu/product/GLOBAL_ANALYSISFORECAST_BGC_001_028/services> e o restante do fluxo é igual ao dataset anterior, com os dados espalhados em diversos datasets, uma descrição geral, e um manual para o usuário em "User Manual". Eu escolhi para usar aqui o "cmems_mod_glo_bgc-car_anfc_0.25deg_P1M-m" pois parece ter variáveis que poderiam ser interessantes para a distribuição do bonito-listrado: pH, alcalinidade total e carbono inorgânico dissolvido, e também possui a escala temporal mensal. Então, clicamos no campo "Form" do dataset escolhido e por fim clicamos em "Download" na nova página, com todas as variáveis selecionadas.
 
-Ele irá fornecer um arquivo do formato .nc (NetCDF), com uma resolução de 1/4 graus, e com 50 níveis verticais entre 0 e 5700 metros de profundidade
+Ele irá fornecer um arquivo do formato .nc (NetCDF), com uma resolução de 1/4 graus, e com 50 níveis verticais entre 0.5 e 5727.9 metros de profundidade
 
 ```{r}
 # Carregando o arquivo .nc com os dados ambientais já em raster
@@ -220,7 +235,7 @@ R: Para ambas as perguntas, devemos apenas olhar para a página de download dos 
 
 O Global Ocean Physics terá apenas a data como possível dimensão a mais, já que os dados são 2D, não tendo profundidade associada.
 
-Para os datasets P1M, o tamanho do arquivo só aumenta quando a data escolhida está a 1 mês de "distância", pois as medidas são mensais. Para os diários, será a 1 dia de distância, e para os datasets com dados por hora, a 1 hora de distância. Minha única dúvida é se essas medidas são as medidas absolutas, registradas naquele momento apenas, ou a média ao longo desse intervalo de tempo de espaçamento (acredito ser a média ao longo do intervalo, mas não tenho certeza)
+Para os datasets P1M, o tamanho do arquivo só aumenta quando a data escolhida está a 1 mês de "distância", pois as medidas são mensais. Para os diários, será a 1 dia de distância, e para os datasets com dados por hora, a 1 hora de distância. Minha única dúvida é se essas medidas são as medidas absolutas, registradas naquele momento apenas, ou a média ao longo desse intervalo de tempo de espaçamento (acredito que as medidas são feitas a cada hora, e para o intervalo diário, por exemplo, é considerada a média de todas as horas...)
 
 ### Global Ocean Biogeochemistry com 5 profundidades (de 0.49 a 5.08) e 2 datas (01/08/2024 a 01/09/2024)
 
@@ -243,23 +258,27 @@ terra::plot(copernicus_raster_bio_2, 'dissic_depth=5.0782237_1')
 
 ### Resumo
 
-Resolução: 
+Resolução espacial: 5°, 1° e 0.25°
 
-Intervalo temporal: Salinidade e temperatura estão disponíveis em 1955-1964, 1965-1974, 1975-1984, 1985-1994, 1995-2004, 2005-2014, 2015-2022 e 3 normais climatológicas para períodos de 30 anos: 1971-2000, 1981-2010, e 1991-2020. Phosphate, silicate, e nitrate estão apenas para 1965-2022. Oxygen, Apparent Oxygen Utilization, e Percent Oxygen Saturation estão disponíveis para 1965-2022 e 1971-2000.
+Resolução temporal: década (ver página 8 da documentação, pois podemos escolher entre mensal, trimestral e anual, mas não temos a dimensão do tempo no raster, então acredito que em qualquer caso será a média ao longo de toda a extensão temporal)
 
-Link: <https://www.ncei.noaa.gov/products/world-ocean-atlas>
+Extensão espacial: Lat -90° a 90°, Lon -180° a 180°, Profundidade 0 a 5700m
+
+Extensão temporal: 1955 - 2022
 
 Variáveis: Temperature (°C), Salinity (unitless), Dissolved Oxygen (µmol/kg), Percent Oxygen Saturation (%), Apparent Oxygen Utilization (µmol/kg), Silicate (µmol/kg), Phosphate (µmol/kg), Nitrate (µmol/kg)
 
+Link: <https://www.ncei.noaa.gov/products/world-ocean-atlas>
+
 -----
 
-Os dados podem ser encontrados indo, a partir do link, em "Data", onde então poderemos escolher entre cada uma das variáveis. Todas parecem estar disponíveis nas resoluções de 1° e 5°, e algumas estão na resolução de 0.25°. Podemos escolher para cada uma o período climatológico e a quantidade de medidas nesse período, entre anual, trimestral ou mensal, assim como o formato do arquivo entre .csv, .nc, entre outros. Todos os dados estarão disponíveis em diferentes profundidades, especificadas na documentação para cada variável.
+Os dados podem ser encontrados indo, a partir do link, em "Data", onde então poderemos escolher entre cada uma das variáveis. Todas estão disponíveis nas resoluções de 1° e 5°, e temperatura e salinidade também estão na resolução de 0.25°. Podemos escolher para cada uma o período climatológico e o intervalo temporal, entre anual, trimestral ou mensal, assim como o formato do arquivo entre .csv, .nc, entre outros. Todos os dados estarão disponíveis em diferentes profundidades (ver página 12 da documentação) para cada variável, entre 0m e 5700m
 
-As informações estão disponíveis na página do WOA 2023: <https://www.ncei.noaa.gov/access/world-ocean-atlas-2023/>
+Salinidade e temperatura em 1955-1964, 1965-1974, 1975-1984, 1985-1994, 1995-2004, 2005-2014, 2015-2022 e 3 normais climatológicas para períodos de 30 anos: 1971-2000, 1981-2010, e 1991-2020. Phosphate, silicate, e nitrate estão apenas em 1965-2022. Oxygen, Apparent Oxygen Utilization, e Percent Oxygen Saturation em 1965-2022 e 1971-2000.
 
 Para essa análise, irei usar os dados de temperatura e salinidade
 
-Para fazer o download, basta clicar na variável, escolher o formato do arquivo (estarei usando diretamente o NetCDF, pois é mais simples e direto que pegar o CSV e converter depois para um raster), a resolução (estarei usando 1° mas poderia usar 0.25°, apenas para deixar o arquivo um pouco mais leve para a análise inicial) e o período climatológico desejado (estarei usando o período de 1991-2020). Então, temos que escolher entre "Annual", "Seasonal" ou "Monthly" (não entendo qual a diferença, mas penso que é basicamente ou usar a média de todo o ano, ou a média daquele trimestre, ou a média daquele mês, onde todos os arquivos terão o mesmo tamanho). Estarei usando o Annual. Por fim, basta clicar em qualquer um dos servidores para fazer download do arquivo, onde estou usando o HTTPServer.
+Para fazer o download, basta clicar na variável, escolher o formato do arquivo (estarei usando diretamente o NetCDF, pois é mais simples e direto que pegar o CSV e converter depois para um raster), a resolução (estarei usando 1° para deixar o arquivo um pouco mais leve para a análise inicial) e o período climatológico desejado (estarei usando o período de 1991-2020). Então, temos que escolher entre "Annual", "Seasonal" ou "Monthly" (não entendo exatamente qual a diferença, mas penso que é basicamente ou usar a média de todo o ano, ou a média daquele trimestre, ou a média daquele mês, onde todos os arquivos terão o mesmo tamanho). Estarei usando o Annual. Por fim, basta clicar em qualquer um dos servidores para fazer download do arquivo, onde estou usando o HTTPServer.
 
 Ambas as variáveis seguem exatamente o mesmo fluxo e possuem os mesmos parâmetros. Porém, para usar as demais variáveis, teria que ser analisado o fato que elas possuem diferentes resoluções disponíveis e diferentes períodos climatológicos. Podemos também acessar a documentação do WOA nas páginas de download, em "The **WOA documentation** contains detailed information."
 
@@ -274,6 +293,12 @@ head(names(woa_raster_salinidade), 110)
 ```{r echo=FALSE}
 # imagem retirada da documentação do WOA, página 9
 knitr::include_graphics("imagens/variaveis_woa.png")
+```
+
+```{r}
+# Resolução e extensão do raster
+terra::res(woa_raster_salinidade)
+terra::ext(woa_raster_salinidade)
 ```
 
 ```{r}
@@ -295,6 +320,7 @@ terra::plot(woa_raster_temperatura, 't_an_depth=5')
 ### Juntando os rasters
 
 ```{r}
+# agrupando as camadas de 2 rasters em 1 só 
 woa_raster <- c(woa_raster_temperatura, woa_raster_salinidade)
 terra::plot(woa_raster, c('s_an_depth=5','t_an_depth=5'))
 ```
