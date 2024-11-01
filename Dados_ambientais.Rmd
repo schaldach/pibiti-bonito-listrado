@@ -27,11 +27,11 @@ p_load(tidyverse, terra, leaflet, readxl)
 
 Limites de latitude e longitude globais (pois usar os limites de latitude como +90 e -90 irá dar um erro ao plotar os rasters, na minha experiência)
 
-Algumas colunas do Aquamaps têm valores muito extremos nas maiores latitudes, por isso devemos ou limitar o tamanho dos rasters até \~75 graus de latitude, ou tratar esses valores em cada dataset, para conseguir visualizar os rasters em um plot. Por isso os limites globais escolhidos aqui são menores que os limites escolhidos para as ocorrências
+Algumas colunas do Aquamaps têm valores muito extremos nas maiores latitudes, por isso devemos ou limitar o tamanho dos rasters até \~75 graus de latitude, ou tratar esses valores em cada dataset, para conseguir visualizar os rasters em um plot. Por isso os limites globais escolhidos aqui são menores que os limites escolhidos para as ocorrências. Mas, se esses dados extremos fossem tratados, talvez desse para plotar o raster de +90 a -90 de latitude. Eles parecem representar células que não possuem dados
 
 ```{r}
-lat_min <- -75
-lat_max <- 75
+lat_min <- -85
+lat_max <- 85
 long_min <- -180
 long_max <- 180
 
@@ -324,3 +324,25 @@ terra::plot(woa_raster_temperatura, 't_an_depth=5')
 woa_raster <- c(woa_raster_temperatura, woa_raster_salinidade)
 terra::plot(woa_raster, c('s_an_depth=5','t_an_depth=5'))
 ```
+
+Análises de fontes não finalizadas abaixo...
+
+# GMED
+
+Link: https://gmed.auckland.ac.nz/download.html
+
+Documentação em https://gmed.auckland.ac.nz/layersd.html
+
+Tem intervalos e extensões bem inconsistentes, um diferente para cada variável... e não oferece a dimensão de profundidade ou tempo, apenas apresenta as médias 
+
+```{r}
+# versão "cropped" do raster, vai até 70°
+r <- terra::rast('dados_ambientais/gmed/ph/ph.asc')
+names(r)
+terra::plot(r)
+```
+
+# Bio-Oracle
+
+
+

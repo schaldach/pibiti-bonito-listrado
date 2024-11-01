@@ -43,7 +43,7 @@ palette_name <- "viridis"
 
 Limites de latitude e longitude globais (pois usar os limites de
 latitude como +90 e -90 irá dar um erro ao plotar os rasters, na minha
-experiência)
+experiência, não sei o porque)
 
 ```{r}
 lat_min <- -85
