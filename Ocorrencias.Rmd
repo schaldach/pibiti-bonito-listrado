@@ -7,21 +7,21 @@ editor_options:
     wrap: 72
 ---
 
-IMPORTANTE PARA EXECUTAR DO GITHUB: 
+IMPORTANTE PARA EXECUTAR DO GITHUB:
 
-1. Definir o diretório de trabalho
-do RStudio como a pasta "PIBITI" com os arquivos e imagens usadas, em 
-"Files" -> "..." -> Escolher pasta "PIBITI", e então ir no símbolo 
-de configurações -> "Set as Working Directory"
+1.  Definir o diretório de trabalho do RStudio como a pasta "PIBITI" com
+    os arquivos e imagens usadas, em "Files" -\> "..." -\> Escolher
+    pasta "PIBITI", e então ir no símbolo de configurações -\> "Set as
+    Working Directory"
 
-2. Marcar a opção "Knit" -\> "Knit Directory" -\> "Current working
-directory" para mudar o diretório de trabalho a ser usado pelo
-RMarkdown, para a pasta definida anteriormente 
+2.  Marcar a opção "Knit" -\> "Knit Directory" -\> "Current working
+    directory" para mudar o diretório de trabalho a ser usado pelo
+    RMarkdown, para a pasta definida anteriormente
 
-- Mesmo assim, as imagens
-usadas não aparecerão em "Knit" -\> "Knit to HTML", provavelmente pelo
-fato que o script está em um diretório diferente das imagens, mesmo que
-esta mesma função funcione na execução normal do programa.
+-   Mesmo assim, as imagens usadas não aparecerão em "Knit" -\> "Knit to
+    HTML", provavelmente pelo fato que o script está em um diretório
+    diferente das imagens, mesmo que esta mesma função funcione na
+    execução normal do programa.
 
 ### Bibliotecas gerais usadas
 
@@ -42,7 +42,7 @@ palette_name <- "viridis"
 ```
 
 Limites de latitude e longitude globais (pois usar os limites de
-latitude como +90 e -90 irá dar um erro nos rasters, na minha
+latitude como +90 e -90 irá dar um erro ao plotar os rasters, na minha
 experiência)
 
 ```{r}
@@ -106,7 +106,7 @@ Resolução espacial: 0.0001°
 
 Link: <https://mapper.obis.org/?taxonid=127018#>
 
------
+------------------------------------------------------------------------
 
 Para achar o link, basta entrar no OBIS, ir em Data -\> Mapper,
 selecionar a espécie do Katsuwonus Pelamis (basta digitar no buscador)
@@ -221,7 +221,7 @@ Resolução espacial: 0.0001°
 
 Link: <https://www.gbif.org/species/2374191>
 
------
+------------------------------------------------------------------------
 
 Para achar o link, basta entrar no GBIF, ir em Species, procurar por
 Katsuwonus Pelamis, clicar no 1° resultado -\> Katsuwonus pelamis
@@ -331,13 +331,15 @@ N° ocorrências: 786587 (global), 597570 ("sul")
 
 Extensão temporal: 1968 - 2022 (global e "sul")
 
-Resolução espacial: 1°, 5°, 10°, 20° (mesmo aqueles com resolução Lat/Lon parecem ser de 1°)
+Resolução espacial: 1°, 5°, 10°, 20° (mesmo aqueles com resolução
+Lat/Lon parecem ser de 1°)
 
 Link: <https://www.iccat.int/en/accesingdb.html>
 
------
+------------------------------------------------------------------------
 
-O Manual ICCAT pode ser encontrado em <https://www.iccat.int/en/iccatmanual.html>
+O Manual ICCAT pode ser encontrado em
+<https://www.iccat.int/en/iccatmanual.html>
 
 Para achar o link, basta entrar no ICCAT, e ir para Statistics -\>
 Access to ICCAT Statistics Databases
@@ -429,7 +431,8 @@ explicação das diferentes resoluções:
 <https://www.iccat.int/Forms/CODES_SquareTypes.xlsx>
 
 Pelo que entendi, a resolução "ICCAT" quer dizer que ele apenas irá
-identificar a área conforme o código da região - todos esses pontos parecem ter latitude e longitude iguais a 0
+identificar a área conforme o código da região - todos esses pontos
+parecem ter latitude e longitude iguais a 0
 
 ```{r}
 # usando apenas os registros com resolução de 1x1 grau

@@ -25,7 +25,7 @@ p_load(tidyverse, terra, leaflet, readxl)
 
 ### Variáveis gerais usadas
 
-Limites de latitude e longitude globais (pois usar os limites de latitude como +90 e -90 irá dar um erro nos rasters, na minha experiência)
+Limites de latitude e longitude globais (pois usar os limites de latitude como +90 e -90 irá dar um erro ao plotar os rasters, na minha experiência)
 
 Algumas colunas do Aquamaps têm valores muito extremos nas maiores latitudes, por isso devemos ou limitar o tamanho dos rasters até \~75 graus de latitude, ou tratar esses valores em cada dataset, para conseguir visualizar os rasters em um plot. Por isso os limites globais escolhidos aqui são menores que os limites escolhidos para as ocorrências
 
@@ -54,15 +54,15 @@ Resolução espacial: 0.5 graus
 
 Resolução temporal: - (todos estão descritos como Annual average, então acredito que os valores serão a média de todos os anos ao longo da extensão temporal)
 
-Extensão temporal: 2000-2014
-
 Extensão espacial: Lat -90° a 90°, Lon -180° a 180°
+
+Extensão temporal: 2000-2014
 
 Variáveis: variáveis "burocráticas", elevação, profundidade, temperatura (superfície e fundo), salinidade (superfície e fundo), produção primária, concentração do gelo marinho, oxigênio molecular dissolvido (superfície e fundo), distância até terra.
 
 Link: <https://www.aquamaps.org/main/envt_data.php>
 
------
+------------------------------------------------------------------------
 
 O link pode ser encontrado entrando no Aquamaps e clicando em "Environmental Data"
 
@@ -155,7 +155,7 @@ Variáveis: temperature, salinity, currents, sea level, mixed layer depth, ice p
 
 Link: <https://data.marine.copernicus.eu/products> (será preciso criar uma conta)
 
------
+------------------------------------------------------------------------
 
 O link pode ser encontrado entrando no Marine Copernicus e clicar em "Access Data" -\> "Ocean Products", onde os mais interessantes parecem ser "Global Ocean Physics" e "Global Ocean Biogeochemistry" (ambos terão uma versão mais atualizada com previsões para o futuro próximo, Analysis, e uma mais antiga, Reanalysis)
 
@@ -270,7 +270,7 @@ Variáveis: Temperature (°C), Salinity (unitless), Dissolved Oxygen (µmol/kg),
 
 Link: <https://www.ncei.noaa.gov/products/world-ocean-atlas>
 
------
+------------------------------------------------------------------------
 
 Os dados podem ser encontrados indo, a partir do link, em "Data", onde então poderemos escolher entre cada uma das variáveis. Todas estão disponíveis nas resoluções de 1° e 5°, e temperatura e salinidade também estão na resolução de 0.25°. Podemos escolher para cada uma o período climatológico e o intervalo temporal, entre anual, trimestral ou mensal, assim como o formato do arquivo entre .csv, .nc, entre outros. Todos os dados estarão disponíveis em diferentes profundidades (ver página 12 da documentação) para cada variável, entre 0m e 5700m
 
